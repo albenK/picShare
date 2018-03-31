@@ -1,5 +1,5 @@
-var CACHE_STATIC = "static-v4";
-var CACHE_DYNAMIC = "dynamic-v4";
+var CACHE_STATIC = "static-v10";
+var CACHE_DYNAMIC = "dynamic-v6";
 
 
 self.addEventListener("install", function(event) {
@@ -12,6 +12,7 @@ self.addEventListener("install", function(event) {
             cache.addAll([
                 "/",
                 "/index.html",
+                "/offline.html",
                 "/src/js/app.js",
                 "/src/js/feed.js",
                 "/src/js/promise.js",
@@ -72,7 +73,12 @@ self.addEventListener("fetch", function(event) {
                             });
                     })
                     .catch(function(error) {
-
+                        /* If this code runs, it means user is offline 
+                        and the resource wasn't in the cache.*/
+                        return caches.open(CACHE_STATIC)
+                            .then(function(cache) {
+                                return cache.match("/offline.html");
+                            });
                     });
             })
     );

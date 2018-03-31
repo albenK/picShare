@@ -2,6 +2,8 @@ var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 
+
+// currently not being used. Allows us to cache things on demand.
 function showInstallBannerIfPossible() {
   console.log("installBannerEvent is", installBannerEvent);
   if(installBannerEvent) {
@@ -32,6 +34,18 @@ shareImageButton.addEventListener('click', openCreatePostModal);
 
 closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
 
+function onSaveButtonClicked(event) {
+  console.log("clicked");
+  // check if the caches api is supported in the browser. If so, add the resources
+  if('caches' in window) {
+    caches.open("userRequested")
+    .then(function(cache) {
+      cache.add("https://httpbin.org/get");
+      cache.add("/src/images/sf-boat.jpg");
+    });
+  }
+  
+}
 
 function createCard() {
   var cardWrapper = document.createElement("div");
@@ -51,6 +65,10 @@ function createCard() {
   cardSupportingText.className = "mdl-card__supporting-text";
   cardSupportingText.textContent = "in San Francisco";
   cardSupportingText.style.textAlign = "center";
+  // var cardSaveButton = document.createElement("button");
+  // cardSaveButton.textContent = "Save";
+  // cardSaveButton.addEventListener("click", onSaveButtonClicked);
+  // cardSupportingText.appendChild(cardSaveButton);
   cardWrapper.appendChild(cardSupportingText);
   
   componentHandler.upgradeElement(cardWrapper);
