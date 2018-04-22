@@ -1,7 +1,7 @@
 var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
-
+var sharedMomentsArea = document.getElementById("shared-moments");
 
 // currently not being used. Allows us to cache things on demand.
 function showInstallBannerIfPossible() {
@@ -47,6 +47,12 @@ function onSaveButtonClicked(event) {
   
 }
 
+function clearCards() {
+  while(sharedMomentsArea.hasChildNodes()) {
+    sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
+  }
+}
+
 function createCard() {
   var cardWrapper = document.createElement("div");
   cardWrapper.className = "shared-moment-card mdl-card mdl-shadow--2dp";
@@ -72,14 +78,36 @@ function createCard() {
   cardWrapper.appendChild(cardSupportingText);
   
   componentHandler.upgradeElement(cardWrapper);
-  var sharedMomentsArea = document.getElementById("shared-moments");
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-fetch("https://httpbin.org/get")
+var url = "https://httpbin.org/get";
+var networkDataRecieved = false;
+fetch(url)
   .then(function(response) {
     return response.json();
   })
   .then(function(data) {
+    networkDataRecieved = true;
+    console.log("From web: ", data);
+    clearCards();
     createCard();
   });
+/* if network is slow, we use assets from cache. This is just dummy data, but once
+we get data (second then()) we clear our view and create the card..
+*/
+if('caches' in window) {
+  caches.match(url)
+    .then(function(response) {
+      if(response) {
+        return response.json();
+      }
+    })
+    .then(function(data) {
+      console.log("From cache: ", data);
+      if(!networkDataRecieved) {
+        clearCards();
+        createCard();
+      }
+    })
+}
