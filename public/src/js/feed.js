@@ -53,23 +53,23 @@ function clearCards() {
   }
 }
 
-function createCard() {
+function createCard(post) {
   var cardWrapper = document.createElement("div");
   cardWrapper.className = "shared-moment-card mdl-card mdl-shadow--2dp";
   var cardTitle = document.createElement("div");
   cardTitle.className = "mdl-card__title";
-  cardTitle.style.backgroundImage = "url('/src/images/sf-boat.jpg')";
+  cardTitle.style.backgroundImage = "url(" + post.image + ")";
   cardTitle.style.backgroundSize = "cover";
   cardTitle.style.height = "180px";
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement("h2");
   cardTitleTextElement.className = "mdl-card__title-text";
-  cardTitleTextElement.textContent = "San Francisco Trip";
+  cardTitleTextElement.textContent = post.title;
   cardTitleTextElement.style.color = "white";
   cardTitle.appendChild(cardTitleTextElement);
   var cardSupportingText = document.createElement("div");
   cardSupportingText.className = "mdl-card__supporting-text";
-  cardSupportingText.textContent = "in San Francisco";
+  cardSupportingText.textContent = post.location;
   cardSupportingText.style.textAlign = "center";
   // var cardSaveButton = document.createElement("button");
   // cardSaveButton.textContent = "Save";
@@ -81,7 +81,14 @@ function createCard() {
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-var url = "https://httpbin.org/get";
+function createCardsBasedOnPosts(posts) {
+  clearCards();
+  for(var i = 0; i < posts.length; i++){
+    createCard(posts[i]);
+  }
+}
+
+var url = "https://picshare-46c7b.firebaseio.com/posts.json";
 var networkDataRecieved = false;
 fetch(url)
   .then(function(response) {
@@ -90,10 +97,13 @@ fetch(url)
   .then(function(data) {
     networkDataRecieved = true;
     console.log("From web: ", data);
-    clearCards();
-    createCard();
+    var postsArray = [];
+    for(var key in data) {
+      postsArray.push(data[key]);
+    }
+    createCardsBasedOnPosts(postsArray);
   });
-/* if network is slow, we use assets from cache. This is just dummy data, but once
+/* if network is slow, we use assets from cache. Once
 we get data (second then()) we clear our view and create the card..
 */
 if('caches' in window) {
@@ -106,8 +116,11 @@ if('caches' in window) {
     .then(function(data) {
       console.log("From cache: ", data);
       if(!networkDataRecieved) {
-        clearCards();
-        createCard();
+        var postsArray = [];
+        for(var key in data) {
+          postsArray.push(data[key]);
+        }
+       createCardsBasedOnPosts(postsArray);
       }
     })
 }

@@ -1,5 +1,5 @@
-var CACHE_STATIC = "static-v14";
-var CACHE_DYNAMIC = "dynamic-v7";
+var CACHE_STATIC = "static-v1";
+var CACHE_DYNAMIC = "dynamic-v1";
 var STATIC_FILES = [
     "/",
     "/index.html",
@@ -16,6 +16,19 @@ var STATIC_FILES = [
     "https://fonts.googleapis.com/icon?family=Material+Icons",
     "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"
 ];
+
+// function trimCache(cacheName, maxLength) {
+//     caches.open(cacheName)
+//         .then((cache) => {
+//             cache.keys()
+//                 .then((keyList) => {
+//                     if(keyList.length > maxLength) {
+//                         cache.delete(keyList[0])
+//                             .then(trimCache(cacheName, maxLength));
+//                     }
+//                 });
+//         });   
+// }
 
 self.addEventListener("install", function(event) {
     console.log("[ServiceWorker] installing service Worker...", event);
@@ -84,19 +97,35 @@ self.addEventListener("activate", function(event) {
 //     );
 // });
 
+function isInArray(string, array) {
+    var cachePath;
+    if (string.indexOf(self.origin) === 0) { // request targets domain where we serve the page from (i.e. NOT a CDN)
+        console.log('matched ', string);
+        cachePath = string.substring(self.origin.length); // take the part of the URL AFTER the domain (e.g. after localhost:8080)
+    } else {
+        cachePath = string; // store the full request (for CDNs)
+    }
+    return array.indexOf(cachePath) > -1;
+}
 
 self.addEventListener("fetch", function(event) {
-    var url = "https://httpbin.org/get";
+    var url = "https://picshare-46c7b.firebaseio.com/posts";
     if(event.request.url.indexOf(url) > -1) {
         event.respondWith(
             caches.open(CACHE_DYNAMIC)
                 .then(function(cache) {
                     return fetch(event.request)
                         .then(function(response) {
+                            //trimCache(CACHE_DYNAMIC, 3);
                             cache.put(event.request, response.clone());
                             return response;
                         });
                 })
+        );
+    }
+    else if(isInArray(event.request.url, CACHE_STATIC)) {
+        event.repsondWith(
+            caches.match(event.request)
         );
     }
     else {
@@ -121,7 +150,7 @@ self.addEventListener("fetch", function(event) {
                         and the resource wasn't in the cache.*/
                         return caches.open(CACHE_STATIC)
                             .then(function(cache) {
-                                if(event.request.url.indexOf("/help") > -1) {
+                                if(event.request.headers.get('accept').includes('text/html')) {
                                     return cache.match("/offline.html");
                                 }
                             });
