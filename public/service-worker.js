@@ -1,4 +1,6 @@
-var CACHE_STATIC = "static-v1";
+importScripts("/src/js/idb.js");
+
+var CACHE_STATIC = "static-v2";
 var CACHE_DYNAMIC = "dynamic-v1";
 var STATIC_FILES = [
     "/",
@@ -6,6 +8,7 @@ var STATIC_FILES = [
     "/offline.html",
     "/src/js/app.js",
     "/src/js/feed.js",
+    "/src/js/idb.js",
     "/src/js/promise.js",
     "/src/js/fetch.js",
     "/src/js/material.min.js",
@@ -16,6 +19,14 @@ var STATIC_FILES = [
     "https://fonts.googleapis.com/icon?family=Material+Icons",
     "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"
 ];
+
+var indexedDbPromise = idb.open("posts-store", 1, function(database) {
+    // if "posts" object store doesnt exist..
+    if(!database.objectStoreNames.contains("posts")) { 
+        //...then create it
+        database.createObjectStore("posts", {keyPath: "id"});
+    }
+});
 
 // function trimCache(cacheName, maxLength) {
 //     caches.open(cacheName)
@@ -112,14 +123,21 @@ self.addEventListener("fetch", function(event) {
     var url = "https://picshare-46c7b.firebaseio.com/posts";
     if(event.request.url.indexOf(url) > -1) {
         event.respondWith(
-            caches.open(CACHE_DYNAMIC)
-                .then(function(cache) {
-                    return fetch(event.request)
-                        .then(function(response) {
-                            //trimCache(CACHE_DYNAMIC, 3);
-                            cache.put(event.request, response.clone());
-                            return response;
+            fetch(event.request)
+                .then(function(response) {
+                    var responseToStore = response.clone(); // to store in indexedDB
+                    responseToStore.json()
+                        .then(function(jsonData) {
+                            for(var key in jsonData) {
+                                indexedDbPromise.then(function(database) {
+                                    var transaction = database.transaction("posts", "readwrite"); // create a readwrite transaction to the posts store.
+                                    var store = transaction.objectStore("posts"); // access the posts store.
+                                    store.put(jsonData[key]); // put data into indexedDb object store.
+                                    return transaction.complete;
+                                })
+                            }
                         });
+                    return response;
                 })
         );
     }
