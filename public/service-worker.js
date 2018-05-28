@@ -122,7 +122,7 @@ self.addEventListener("fetch", function(event) {
                     responseToStore.json()
                         .then(function(jsonData) {
                             for(var key in jsonData) {
-                                storeDataToObjectStore("posts", jsonData[key]);
+                                storeDataToObjectStore("posts", jsonData[key]); // store data to IndexedDB.
                             }
                         });
                     return response;
