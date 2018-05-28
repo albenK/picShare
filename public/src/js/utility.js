@@ -16,3 +16,11 @@ function storeDataToObjectStore(objectStoreName, jsonData) {
         return transaction.complete;
     })
 }
+
+function getAllDataFromObjectStore(objectStoreName) {
+    return indexedDbPromise.then(function(database) {
+        var transaction = database.transaction(objectStoreName, "readonly"); // create a readonly transaction to the store.
+        var store = transaction.objectStore(objectStoreName);  // access the store.
+        return store.getAll(); // getAll() happens to be a promise. When it resolves, we get the data.
+    });
+}

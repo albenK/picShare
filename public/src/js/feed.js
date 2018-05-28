@@ -103,24 +103,14 @@ fetch(url)
     }
     createCardsBasedOnPosts(postsArray);
   });
-/* if network is slow, we use assets from cache. Once
-we get data (second then()) we clear our view and create the card..
-*/
-if('caches' in window) {
-  caches.match(url)
-    .then(function(response) {
-      if(response) {
-        return response.json();
+/* if network is slow, we use assets from indexedDB.*/
+if('indexedDB' in window) {
+  // get all data from the "posts" object store within indexedDB.
+  getAllDataFromObjectStore("posts")
+    .then(function(posts) {
+      if(!networkDataRecieved){
+        console.log("From indexedDB:", posts);
+        createCardsBasedOnPosts(posts);
       }
-    })
-    .then(function(data) {
-      console.log("From cache: ", data);
-      if(!networkDataRecieved) {
-        var postsArray = [];
-        for(var key in data) {
-          postsArray.push(data[key]);
-        }
-       createCardsBasedOnPosts(postsArray);
-      }
-    })
+    });
 }
