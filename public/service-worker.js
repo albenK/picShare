@@ -1,4 +1,5 @@
 importScripts("/src/js/idb.js");
+importScripts("/src/js/utility.js");
 
 var CACHE_STATIC = "static-v2";
 var CACHE_DYNAMIC = "dynamic-v1";
@@ -19,14 +20,6 @@ var STATIC_FILES = [
     "https://fonts.googleapis.com/icon?family=Material+Icons",
     "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"
 ];
-
-var indexedDbPromise = idb.open("posts-store", 1, function(database) {
-    // if "posts" object store doesnt exist..
-    if(!database.objectStoreNames.contains("posts")) { 
-        //...then create it
-        database.createObjectStore("posts", {keyPath: "id"});
-    }
-});
 
 // function trimCache(cacheName, maxLength) {
 //     caches.open(cacheName)
@@ -129,12 +122,7 @@ self.addEventListener("fetch", function(event) {
                     responseToStore.json()
                         .then(function(jsonData) {
                             for(var key in jsonData) {
-                                indexedDbPromise.then(function(database) {
-                                    var transaction = database.transaction("posts", "readwrite"); // create a readwrite transaction to the posts store.
-                                    var store = transaction.objectStore("posts"); // access the posts store.
-                                    store.put(jsonData[key]); // put data into indexedDb object store.
-                                    return transaction.complete;
-                                })
+                                storeDataToObjectStore("posts", jsonData[key]);
                             }
                         });
                     return response;
