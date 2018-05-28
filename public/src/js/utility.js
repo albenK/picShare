@@ -22,5 +22,15 @@ function getAllDataFromObjectStore(objectStoreName) {
         var transaction = database.transaction(objectStoreName, "readonly"); // create a readonly transaction to the store.
         var store = transaction.objectStore(objectStoreName);  // access the store.
         return store.getAll(); // getAll() happens to be a promise. When it resolves, we get the data.
+        // no need for "return transaction.complete" because it's only used for "readwrite" operations
+    });
+}
+
+function clearAllDataFromObjectStore(objectStoreName) {
+    return indexedDbPromise.then(function(database) {
+        var transaction = database.transaction(objectStoreName, "readwrite"); // create a readwrite transaction to the store.
+        var store = transaction.objectStore(objectStoreName); // access the store.
+        store.clear(); // clear all data within the store.
+        return transaction.complete;
     });
 }

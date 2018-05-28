@@ -1,7 +1,7 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-var CACHE_STATIC = "static-v3";
+var CACHE_STATIC = "static-v4";
 var CACHE_DYNAMIC = "dynamic-v1";
 var STATIC_FILES = [
     "/",
@@ -119,10 +119,14 @@ self.addEventListener("fetch", function(event) {
             fetch(event.request)
                 .then(function(response) {
                     var responseToStore = response.clone(); // to store in indexedDB
-                    responseToStore.json()
+                    // clear all of the old data!!
+                    clearAllDataFromObjectStore("posts")
+                        .then(function() {
+                            return responseToStore.json();
+                        })
                         .then(function(jsonData) {
                             for(var key in jsonData) {
-                                storeDataToObjectStore("posts", jsonData[key]); // store data to IndexedDB.
+                                storeDataToObjectStore("posts", jsonData[key]); // store new data to IndexedDB.
                             }
                         });
                     return response;
