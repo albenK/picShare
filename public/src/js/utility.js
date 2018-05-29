@@ -13,7 +13,7 @@ function storeDataToObjectStore(objectStoreName, jsonData) {
         var transaction = database.transaction(objectStoreName, "readwrite"); // create a readwrite transaction to the store.
         var store = transaction.objectStore(objectStoreName); // access the store.
         store.put(jsonData); // put data into indexedDb object store.
-        return transaction.complete;
+        return transaction.complete; // transaction.complete is a promise..
     })
 }
 
@@ -26,11 +26,22 @@ function getAllDataFromObjectStore(objectStoreName) {
     });
 }
 
-function clearAllDataFromObjectStore(objectStoreName) {
+// to delete all of the data from our object store.
+function deleteAllDataFromObjectStore(objectStoreName) {
     return indexedDbPromise.then(function(database) {
         var transaction = database.transaction(objectStoreName, "readwrite"); // create a readwrite transaction to the store.
         var store = transaction.objectStore(objectStoreName); // access the store.
         store.clear(); // clear all data within the store.
-        return transaction.complete;
+        return transaction.complete; // transaction.complete is a promise..
+    });
+}
+
+// to delete a specific item from our object store.
+function deleteItemFromObjectStore(objectStoreName, idOfItem) {
+    return indexedDbPromise.then(function(database) {
+        var transaction = database.transaction(objectStoreName, "readwrite"); // create a readwrite transaction to the store.
+        var store = transaction.objectStore(objectStoreName); // access the store.
+        store.delete(idOfItem);
+        return transaction.complete; // transaction.complete is a promise..
     });
 }

@@ -120,7 +120,7 @@ self.addEventListener("fetch", function(event) {
                 .then(function(response) {
                     var responseToStore = response.clone(); // to store in indexedDB
                     // clear all of the old data!!
-                    clearAllDataFromObjectStore("posts")
+                    deleteAllDataFromObjectStore("posts")
                         .then(function() {
                             return responseToStore.json();
                         })
