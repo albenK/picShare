@@ -2,6 +2,9 @@ var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 var sharedMomentsArea = document.getElementById("shared-moments");
+var createPostForm = document.querySelector("form");
+var titleInput = document.querySelector("#title"); // form title input element
+var locationInput = document.querySelector("#location"); // form location input element
 
 // currently not being used. Allows us to cache things on demand.
 function showInstallBannerIfPossible() {
@@ -115,3 +118,61 @@ if('indexedDB' in window) {
       }
     });
 }
+
+function sendDataToBackend() {
+  var config = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify({
+      id: new Date().toISOString(),
+      title: titleInput.value,
+      location: locationInput.value,
+      image: "https://firebasestorage.googleapis.com/v0/b/picshare-46c7b.appspot.com/o/sf-boat.jpg?alt=media&token=1fece609-8e0d-4df4-b352-ee470d6f3b18"
+    })
+  };
+  fetch("https://picshare-46c7b.firebaseio.com/posts.json", config)
+    .then(function(response) {
+      console.log("Sent data ", response);
+      createCardsBasedOnPosts(); // update view.
+    });
+}
+
+createPostForm.addEventListener("submit", function(event) {
+  event.preventDefault();
+  if(titleInput.value.trim() === "" || locationInput.value.trim() === ""){
+    alert("Please enter valid data!");
+    return;
+  }
+
+  closeCreatePostModal();
+  if("serviceWorker" in navigator && "SyncManager" in window){
+    // when service worker is ready, create  a synchronization task with it.
+    navigator.serviceWorker.ready
+      .then(function(serviceWorkerRegistration) {
+        var post = {
+          id: new Date().toISOString(),
+          title: titleInput.value,
+          location: locationInput.value
+        };
+        // store data to IndexedDB, then register sync task.
+        storeDataToObjectStore("syncedPosts", post)
+          .then(function() {
+            return serviceWorkerRegistration.sync.register("syncNewPosts");
+          })
+          .then(function() {
+            // show snackbar to alert user.
+            var snackbarContainer = document.querySelector("#confirmation-toast");
+            var data = {message: "Your post was saved for syncing!"};
+            snackbarContainer.MaterialSnackbar.showSnackbar(data);
+          })
+          .catch(function(error) {
+            console.error(error);
+          });
+      });
+  } else {
+    sendDataToBackend();
+  }
+});

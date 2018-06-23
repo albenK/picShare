@@ -211,3 +211,41 @@ self.addEventListener("fetch", function(event) {
 //             })
 //     );
 // });
+
+self.addEventListener("sync", function(event) {
+    console.log("[service-worker.js] background syncing", event);
+    if(event.tag === "syncNewPosts"){
+        console.log("[service-worker.js] synNewPost sync event");
+        event.waitUntil(
+            getAllDataFromObjectStore("syncedPosts")
+                .then(function(syncedPosts) {
+                    for(var eachPost of syncedPosts){
+                        var config = {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                              id: eachPost.id,
+                              title: eachPost.title,
+                              location: eachPost.location,
+                              image: "https://firebasestorage.googleapis.com/v0/b/picshare-46c7b.appspot.com/o/sf-boat.jpg?alt=media&token=1fece609-8e0d-4df4-b352-ee470d6f3b18"
+                            })
+                        };
+                        fetch("https://picshare-46c7b.firebaseio.com/posts.json", config)
+                            .then(function(response) {
+                                console.log("Sent data ", response);
+                                // if response is ok, we can delete post from IndexedDB since we stored this post in firebase db.
+                                if(response.ok) {
+                                    deleteItemFromObjectStore("syncedPosts", eachPost.id); // Isn't working correctly!!
+                                }
+                            })
+                            .catch(function(error) {
+                                console.error(error);
+                            });
+                    }
+                })
+        );
+    }
+});

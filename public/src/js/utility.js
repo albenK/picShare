@@ -6,6 +6,9 @@ var indexedDbPromise = idb.open("posts-store", 1, function(database) {
         //...then create it
         database.createObjectStore("posts", {keyPath: "id"});
     }
+    if(!database.objectStoreNames.contains("syncedPosts")) { 
+        database.createObjectStore("syncedPosts", {keyPath: "id"});
+    }
 });
 
 function storeDataToObjectStore(objectStoreName, jsonData) {
