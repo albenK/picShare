@@ -22,12 +22,14 @@ function showInstallBannerIfPossible() {
 }
 
 function openCreatePostModal() {
-  createPostArea.style.display = 'block';
+  //createPostArea.style.display = 'block';
+  createPostArea.style.transform = 'translateY(0)'; 
   showInstallBannerIfPossible();
 }
 
 function closeCreatePostModal() {
-  createPostArea.style.display = 'none';
+  createPostArea.style.transform = 'translateY(100vh)';
+  //createPostArea.style.display = 'none';
 }
 
 shareImageButton.addEventListener('click', openCreatePostModal);
