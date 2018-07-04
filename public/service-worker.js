@@ -1,8 +1,8 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-var CACHE_STATIC = "static-v12";
-var CACHE_DYNAMIC = "dynamic-v2";
+var CACHE_STATIC = "static-v14";
+var CACHE_DYNAMIC = "dynamic-v4";
 var STATIC_FILES = [
     "/",
     "/index.html",
@@ -250,4 +250,21 @@ self.addEventListener("sync", function(event) {
                 })
         );
     }
+});
+
+/* listens for click events that happened on notifications
+    this service worker created. */
+self.addEventListener("notificationclick", function(event) {
+    var notification = event.notification; // the notification that the click event happened on.
+    var notificationAction = event.action; // the action that happened. ie "confirm" or "cancel"
+    console.log(notification);
+    if(notificationAction === "confirm"){
+        console.log("cofirm was chosen");
+        notification.close();
+    }
+    else {
+        console.log(notificationAction);
+        notification.close();
+    }
+
 });

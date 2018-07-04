@@ -26,8 +26,27 @@ window.addEventListener("beforeinstallprompt", function(event) {
 });
 
 function showConfirmationNotification() {
-    var options = { body: "Nice! You've subscribed!"};
-    new Notification("PicShare", options);
+    if("serviceWorker" in navigator){
+        navigator.serviceWorker.ready
+            .then(function(serviceWorkerRegistration) {
+                var options = { 
+                    body: "Nice! You've subscribed!",
+                    icon: "/src/images/icons/app-icon-96x96.png",
+                    image: "/src/images/sf-boat.jpg",
+                    dir: "ltr",
+                    lang: "en-US", // BCP 47 complient
+                    vibrate: [100, 50, 200], // vibrate for 100ms, pause for 50ms, and vibrate again for 200ms
+                    badge: "/src/images/icons/app-icon-96x96.png", // black and white badge that shows up on the top bar for android devices
+                    tag: "confirm-notification",
+                    renotify: true,
+                    actions: [ // actions are buttons shown for the notification.
+                        {action: "confirm", title: "Okay", icon: "/src/images/icons/app-icon-96x96.png"},
+                        {action: "cancel", title: "Cancel", icon: "/src/images/icons/app-icon-96x96.png"}
+                    ]
+                };
+                serviceWorkerRegistration.showNotification("PicShare", options);
+            });
+    }
 }
 
 function askForNotificationPermission(event) {
