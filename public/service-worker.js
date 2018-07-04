@@ -1,7 +1,7 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-var CACHE_STATIC = "static-v10";
+var CACHE_STATIC = "static-v11";
 var CACHE_DYNAMIC = "dynamic-v1";
 var STATIC_FILES = [
     "/",
@@ -233,12 +233,14 @@ self.addEventListener("sync", function(event) {
                               image: "https://firebasestorage.googleapis.com/v0/b/picshare-46c7b.appspot.com/o/sf-boat.jpg?alt=media&token=1fece609-8e0d-4df4-b352-ee470d6f3b18"
                             })
                         };
-                        fetch("https://picshare-46c7b.firebaseio.com/posts.json", config)
+                        fetch("https://us-central1-picshare-46c7b.cloudfunctions.net/storePostData", config)
                             .then(function(response) {
                                 console.log("Sent data ", response);
                                 // if response is ok, we can delete post from IndexedDB since we stored this post in firebase db.
                                 if(response.ok) {
-                                    deleteItemFromObjectStore("syncedPosts", eachPost.id); // Isn't working correctly!!
+                                    response.json().then(function(resData) {
+                                        deleteItemFromObjectStore("syncedPosts", resData.id);
+                                    });
                                 }
                             })
                             .catch(function(error) {

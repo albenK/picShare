@@ -133,7 +133,7 @@ function sendDataToBackend() {
       image: "https://firebasestorage.googleapis.com/v0/b/picshare-46c7b.appspot.com/o/sf-boat.jpg?alt=media&token=1fece609-8e0d-4df4-b352-ee470d6f3b18"
     })
   };
-  fetch("https://picshare-46c7b.firebaseio.com/posts.json", config)
+  fetch("https://us-central1-picshare-46c7b.cloudfunctions.net/storePostData", config)
     .then(function(response) {
       console.log("Sent data ", response);
       createCardsBasedOnPosts(); // update view.
