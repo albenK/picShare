@@ -5,3 +5,10 @@
 .drawer-option {
   padding: 16px;
 }
+
+/* Don't show the enable notifications buttons. We only show them if browser
+  supports notifications.
+*/
+.enable-notifications {
+  display: none;
+}
