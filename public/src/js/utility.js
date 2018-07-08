@@ -1,4 +1,4 @@
-// This file is just a helper file for IndexedDB related things.
+// This file is just a helper file for IndexedDB related things. Also includes some other helper functions
 
 var indexedDbPromise = idb.open("posts-store", 1, function(database) {
     // if "posts" object store doesnt exist..
@@ -48,3 +48,18 @@ function deleteItemFromObjectStore(objectStoreName, idOfItem) {
         return transaction.complete; // transaction.complete is a promise..
     });
 }
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+  
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+  
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }

@@ -86,6 +86,9 @@ function createCard(post) {
 }
 
 function createCardsBasedOnPosts(posts) {
+  if(!posts){
+    return;
+  }
   clearCards();
   for(var i = 0; i < posts.length; i++){
     createCard(posts[i]);

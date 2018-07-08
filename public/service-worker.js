@@ -1,8 +1,8 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-var CACHE_STATIC = "static-v14";
-var CACHE_DYNAMIC = "dynamic-v4";
+var CACHE_STATIC = "static-v20";
+var CACHE_DYNAMIC = "dynamic-v10";
 var STATIC_FILES = [
     "/",
     "/index.html",
@@ -267,4 +267,30 @@ self.addEventListener("notificationclick", function(event) {
         notification.close();
     }
 
+});
+
+self.addEventListener("notificationclose", function(event) {
+    console.log("Notification was closed", event);
+});
+
+
+
+// listen for push events (push notifications)
+self.addEventListener("push", function(event) {
+    console.log("push notification recieved", event);
+    var pushNotificationData = {title: "New!", content: "Something new happened!"};
+    if(event.data){ // if this push event (notification) has any data associated with it
+        pushNotificationData = JSON.parse(event.data.text());
+    }
+
+    //setup some options for the notification.
+    var options = {
+        body: pushNotificationData.content,
+        icon: "/src/images/icons/app-icon-96x96.png",
+        badge: "/src/images/icons/app-icon-96x96.png"
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(pushNotificationData.title, options)
+    );
 });

@@ -49,6 +49,51 @@ function showConfirmationNotification() {
     }
 }
 
+function setupPushSubscriptionWithServiceWorker() {
+    if(!("serviceWorker" in navigator)){ // if no service worker support
+        return;
+    }
+    var serviceWorkerReg = null; // reference to the serviceWorkerRegistration, so we can use it anywhere below
+    navigator.serviceWorker.ready
+        .then(function(serviceWorkerRegistration) {
+            serviceWorkerReg = serviceWorkerRegistration;
+            return serviceWorkerRegistration.pushManager.getSubscription();
+        })
+        .then(function(pushSubscription) {
+            if(pushSubscription === null) {
+                var vapidPublicKey = "BKsfnUyaQLJCUSiMFokPs8v55vR97G2GTYuwt4vmlNQLXY_9YLncr_fmPtnZvvuqKEaq5YXESB8ey04wATfQrq4";
+                var convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
+                // create a new subsciption
+                return serviceWorkerReg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedVapidPublicKey
+                });
+            }
+            else {
+                // use existing subscription.
+            }
+        })
+        .then(function(newSubscription) {
+            var config = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(newSubscription)
+            };
+            return fetch("https://picshare-46c7b.firebaseio.com/subscriptions.json", config);
+        })
+        .then(function(res) {
+            if(res.ok){
+                showConfirmationNotification();
+            }
+        })
+        .catch(function(error) {
+            console.error(error);
+        });
+}
+
 function askForNotificationPermission(event) {
     Notification.requestPermission(function(result) {
         console.log("User choice", result);
@@ -56,13 +101,13 @@ function askForNotificationPermission(event) {
             console.log("No notification permission");
         }
         else {
-            showConfirmationNotification(); // inform user that they've subscribed
+            setupPushSubscriptionWithServiceWorker();
             // TODO: hide enable notifications buttons, since user granted notifications
         }
     })
 }
 
-if("Notification" in window) {
+if("Notification" in window && "serviceWorker" in navigator) {
     for(var i = 0; i < enableNotificationsButtons.length; i++) {
         enableNotificationsButtons[i].style.display = "inline-block";
         enableNotificationsButtons[i].addEventListener("click", askForNotificationPermission);
