@@ -34,7 +34,11 @@ exports.storePostData = firebaseFunctions.https.onRequest(function(request, resp
                         p256dh: subscription.val().keys.p256dh
                     }
                 };
-                var payload = JSON.stringify({title:"New Post", content: "A new post has been added!"});
+                var payload = JSON.stringify({
+                    title:"New Post",
+                    content: "A new post has been added!",
+                    openUrl: "/help"
+                });
                 webPush.sendNotification(pushConfig, payload)
                     .catch(function(error) {console.log(error)});
             });

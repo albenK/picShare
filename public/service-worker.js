@@ -1,8 +1,8 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-var CACHE_STATIC = "static-v20";
-var CACHE_DYNAMIC = "dynamic-v10";
+var CACHE_STATIC = "static-v22";
+var CACHE_DYNAMIC = "dynamic-v12";
 var STATIC_FILES = [
     "/",
     "/index.html",
@@ -264,7 +264,25 @@ self.addEventListener("notificationclick", function(event) {
     }
     else {
         console.log(notificationAction);
-        notification.close();
+        // match all clients where this service worker is active
+        event.waitUntil(
+            clients.matchAll()
+                .then(function(allClients) {
+                    // find a client where the browser window is open. allClients is an array
+                    var activeClient = allClients.find(function(client) {
+                        return client.visibilityState === "visible";
+                    });
+                    if (activeClient !== undefined) { // if we found a client where browser is open
+                        activeClient.navigate(notification.data.url); // access url property that was setup with the notification option within push event.
+                        activeClient.focus(); // focus on the window
+                    }
+                    else {
+                        clients.openWindow(notification.data.url); // access url property that was setup with the notification option within push event.
+                    }
+                    notification.close();
+                })
+        );
+        
     }
 
 });
@@ -278,7 +296,7 @@ self.addEventListener("notificationclose", function(event) {
 // listen for push events (push notifications)
 self.addEventListener("push", function(event) {
     console.log("push notification recieved", event);
-    var pushNotificationData = {title: "New!", content: "Something new happened!"};
+    var pushNotificationData = {title: "New!", content: "Something new happened!", openUrl: "/"};
     if(event.data){ // if this push event (notification) has any data associated with it
         pushNotificationData = JSON.parse(event.data.text());
     }
@@ -287,7 +305,10 @@ self.addEventListener("push", function(event) {
     var options = {
         body: pushNotificationData.content,
         icon: "/src/images/icons/app-icon-96x96.png",
-        badge: "/src/images/icons/app-icon-96x96.png"
+        badge: "/src/images/icons/app-icon-96x96.png",
+        data: {
+            url: pushNotificationData.openUrl // get the openUrl property we passed from server. We can access this within the notificationclick event
+        }
     };
 
     event.waitUntil(
