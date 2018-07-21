@@ -5,6 +5,11 @@ var sharedMomentsArea = document.getElementById("shared-moments");
 var createPostForm = document.querySelector("form");
 var titleInput = document.querySelector("#title"); // form title input element
 var locationInput = document.querySelector("#location"); // form location input element
+var videoPlayer = document.querySelector("#player"); // video element
+var canvasElement = document.querySelector("#canvas");
+var captureButton = document.querySelector("#capture-btn");
+var pickImageDiv = document.querySelector("#pick-image");
+var imagePicker = document.querySelector("#image-picker"); // input type=file
 
 // currently not being used. Allows us to cache things on demand.
 function showInstallBannerIfPossible() {
@@ -24,14 +29,61 @@ function showInstallBannerIfPossible() {
   }
 }
 
+function initializeMedia() {
+  /* Check if mediaDevices is supported in the browser. mediaDevices
+    gives us access to camera and other media. If it's not supported, we attach our own
+    mediaDevices object to Navigator
+  */
+  if(!("mediaDevices" in navigator)) { // if mediaDevices isnt a property of Navigator
+    // then create it
+    navigator.mediaDevices = {};
+  }
+  if(!("getUserMedia" in navigator.mediaDevices)){ // if getUserMedia isn't a property of mediaDevices
+    //then create it
+    navigator.mediaDevices.getUserMedia = function(constraints) {
+      // constraints parameter tells us if it's audio or video.
+      var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia; // safari or firefox getUserMedia
+    
+      if(!getUserMedia){
+        return Promise.reject(new Error('getUserMedia is not implemented!'));
+      }
+      return new Promise(function(resolve, reject) {
+        /* call getUserMedia with 'this' refering to navigator and pass in
+        constraints, resolve and reject as args. The return value of this is a Promise*/
+        getUserMedia.call(navigator, constraints, resolve, reject);
+      });
+    };
+  }
+
+  navigator.mediaDevices.getUserMedia({video: true}) // {video: true, audio: false} is constraints arg
+    .then(function(stream) {
+      /*stream refers to the video stream in this case
+      video element is set to autoplay in index.html file,
+      so just assign the stream to the video elements srcObject property */
+      videoPlayer.srcObject = stream;
+      videoPlayer.style.display = "block"; // show the video element as it's hidden by default
+    })
+    .catch(function(error) {
+      /* If we get an error, then user declined camera access, or something else happened.
+        Either way, just show the file picker as a fallback.
+      */
+      console.error(error);
+      pickImageDiv.style.display = "block"; // show the file picker div
+    });
+}
+
 function openCreatePostModal() {
   //createPostArea.style.display = 'block';
-  createPostArea.style.transform = 'translateY(0)'; 
+  createPostArea.style.transform = 'translateY(0)';
+  initializeMedia();
   showInstallBannerIfPossible();
 }
 
 function closeCreatePostModal() {
   createPostArea.style.transform = 'translateY(100vh)';
+  pickImageDiv.style.display = "none"; // hide the file picker div
+  videoPlayer.style.display = "none"; // hide the video element
+  canvasElement.style.display = "none"; // hide the canvas element.
   //createPostArea.style.display = 'none';
 }
 
