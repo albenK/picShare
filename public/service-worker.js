@@ -220,18 +220,15 @@ self.addEventListener("sync", function(event) {
             getAllDataFromObjectStore("syncedPosts")
                 .then(function(syncedPosts) {
                     for(var eachPost of syncedPosts){
+                        var formData = new FormData();
+                        formData.append("id", eachPost.id);
+                        formData.append("title", eachPost.title);
+                        formData.append("location", eachPost.location);
+                        var pictureName = eachPost.id + ".png";
+                        formData.append("file", eachPost.picture, pictureName);
                         var config = {
                             method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                              "Accept": "application/json"
-                            },
-                            body: JSON.stringify({
-                              id: eachPost.id,
-                              title: eachPost.title,
-                              location: eachPost.location,
-                              image: "https://firebasestorage.googleapis.com/v0/b/picshare-46c7b.appspot.com/o/sf-boat.jpg?alt=media&token=1fece609-8e0d-4df4-b352-ee470d6f3b18"
-                            })
+                            body: formData
                         };
                         fetch("https://us-central1-picshare-46c7b.cloudfunctions.net/storePostData", config)
                             .then(function(response) {

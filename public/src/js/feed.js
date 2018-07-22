@@ -10,6 +10,7 @@ var canvasElement = document.querySelector("#canvas");
 var captureButton = document.querySelector("#capture-btn");
 var pickImageDiv = document.querySelector("#pick-image");
 var imagePicker = document.querySelector("#image-picker"); // input type=file
+var picture = null; // assigned a value of Blob type within captureButton click event
 
 function initializeMedia() {
   /* Check if mediaDevices is supported in the browser. mediaDevices
@@ -78,7 +79,8 @@ captureButton.addEventListener("click", function(event) {
   context.drawImage(videoPlayer, xPosition, yPosition, width, height);
   // stop the stream/camera from running
   stopCamera();
-  
+  var canvasElementDataURL = canvasElement.toDataURL();
+  picture = dataURItoBlob(canvasElementDataURL);
 });
 
 // currently not being used. Allows us to cache things on demand.
@@ -202,18 +204,16 @@ if('indexedDB' in window) {
 }
 
 function sendDataToBackend() {
+  var formData = new FormData();
+  var idOfPost = new Date().toISOString();
+  formData.append("id", idOfPost);
+  formData.append("title", titleInput.value);
+  formData.append("location", locationInput.value);
+  var pictureName = idOfPost + ".png";
+  formData.append("file", picture, pictureName);
   var config = {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json"
-    },
-    body: JSON.stringify({
-      id: new Date().toISOString(),
-      title: titleInput.value,
-      location: locationInput.value,
-      image: "https://firebasestorage.googleapis.com/v0/b/picshare-46c7b.appspot.com/o/sf-boat.jpg?alt=media&token=1fece609-8e0d-4df4-b352-ee470d6f3b18"
-    })
+    body: formData
   };
   fetch("https://us-central1-picshare-46c7b.cloudfunctions.net/storePostData", config)
     .then(function(response) {
@@ -237,7 +237,8 @@ createPostForm.addEventListener("submit", function(event) {
         var post = {
           id: new Date().toISOString(),
           title: titleInput.value,
-          location: locationInput.value
+          location: locationInput.value,
+          picture: picture
         };
         // store data to IndexedDB, then register sync task.
         storeDataToObjectStore("syncedPosts", post)
