@@ -11,24 +11,6 @@ var captureButton = document.querySelector("#capture-btn");
 var pickImageDiv = document.querySelector("#pick-image");
 var imagePicker = document.querySelector("#image-picker"); // input type=file
 
-// currently not being used. Allows us to cache things on demand.
-function showInstallBannerIfPossible() {
-  console.log("installBannerEvent is", installBannerEvent);
-  if(installBannerEvent) {
-    installBannerEvent.prompt();
-    installBannerEvent.userChoice.then(function(choice) {
-      console.log(choice.outcome);
-      if(choice.outcome === "dismissed") {
-        console.log("User cancelled installation :(");
-      }
-      else {
-        console.log("User installed app!! :)");
-      }
-    });
-    installBannerEvent = null; // reset to null, since browsers wont use it again.
-  }
-}
-
 function initializeMedia() {
   /* Check if mediaDevices is supported in the browser. mediaDevices
     gives us access to camera and other media. If it's not supported, we attach our own
@@ -56,11 +38,11 @@ function initializeMedia() {
   }
 
   navigator.mediaDevices.getUserMedia({video: true}) // {video: true, audio: false} is constraints arg
-    .then(function(stream) {
-      /*stream refers to the video stream in this case
-      video element is set to autoplay in index.html file,
-      so just assign the stream to the video elements srcObject property */
-      videoPlayer.srcObject = stream;
+    .then(function(mediaStream) {
+      /*mediaStream refers to the video stream in this case.
+      The video element is set to autoplay in index.html file,
+      so just assign the mediaStream to the video elements srcObject property */
+      videoPlayer.srcObject = mediaStream;
       videoPlayer.style.display = "block"; // show the video element as it's hidden by default
     })
     .catch(function(error) {
@@ -70,6 +52,51 @@ function initializeMedia() {
       console.error(error);
       pickImageDiv.style.display = "block"; // show the file picker div
     });
+}
+function stopCamera() {
+  var videoTracks = videoPlayer.srcObject.getVideoTracks(); // get all running video tracks. returns an array
+  // iterate through each track and stop them.
+  videoTracks.forEach(function(videoTrack) {
+    videoTrack.stop();
+  });
+}
+
+captureButton.addEventListener("click", function(event) {
+  /* show the canvas element. Then we take the stream (from video element) 
+    and attach it to the canvas element. This will make it so that the canvas element
+    will get the latest snapshot.*/
+  canvasElement.style.display = "block"; // show canvas element
+  videoPlayer.style.display = "none"; // hide video element. Stream is still going on though! We need to manually stop the camera/stream!
+  captureButton.style.display = "none";
+  //create a 2d context for the canvas
+  var context = canvasElement.getContext("2d");
+  //draw the stream onto the context. 
+  var xPosition = 0;
+  var yPosition = 0;
+  var width = canvasElement.width;
+  var height = videoPlayer.videoHeight / (videoPlayer.videoWidth / canvasElement.width);
+  context.drawImage(videoPlayer, xPosition, yPosition, width, height);
+  // stop the stream/camera from running
+  stopCamera();
+  
+});
+
+// currently not being used. Allows us to cache things on demand.
+function showInstallBannerIfPossible() {
+  console.log("installBannerEvent is", installBannerEvent);
+  if(installBannerEvent) {
+    installBannerEvent.prompt();
+    installBannerEvent.userChoice.then(function(choice) {
+      console.log(choice.outcome);
+      if(choice.outcome === "dismissed") {
+        console.log("User cancelled installation :(");
+      }
+      else {
+        console.log("User installed app!! :)");
+      }
+    });
+    installBannerEvent = null; // reset to null, since browsers wont use it again.
+  }
 }
 
 function openCreatePostModal() {
@@ -81,10 +108,10 @@ function openCreatePostModal() {
 
 function closeCreatePostModal() {
   createPostArea.style.transform = 'translateY(100vh)';
+  stopCamera();
   pickImageDiv.style.display = "none"; // hide the file picker div
   videoPlayer.style.display = "none"; // hide the video element
   canvasElement.style.display = "none"; // hide the canvas element.
-  //createPostArea.style.display = 'none';
 }
 
 shareImageButton.addEventListener('click', openCreatePostModal);
