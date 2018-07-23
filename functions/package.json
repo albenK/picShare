@@ -2,20 +2,17 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "serve": "firebase serve --only functions",
-    "shell": "firebase functions:shell",
-    "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "web-push": "web-push"
   },
   "dependencies": {
+    "@google-cloud/storage": "^1.7.0",
+    "busboy": "^0.2.14",
     "cors": "^2.8.4",
     "firebase-admin": "^5.12.1",
     "firebase-functions": "^1.0.3",
+    "formidable": "^1.2.1",
+    "uuid-v4": "^0.1.0",
     "web-push": "^3.3.2"
   },
-  "private": true,
-  "scripts": {
-    "web-push": "web-push"
-  }
+  "private": true
 }
