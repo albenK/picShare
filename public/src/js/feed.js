@@ -11,6 +11,46 @@ var captureButton = document.querySelector("#capture-btn");
 var pickImageDiv = document.querySelector("#pick-image");
 var imagePicker = document.querySelector("#image-picker"); // input type=file
 var picture = null; // assigned a value of Blob type within captureButton click event
+var locationButton = document.querySelector("#location-button");
+var locationLoader = document.querySelector("#location-loader");
+var locationDiv = document.querySelector("#manual-location");
+var fetchedLocation = null;
+
+locationButton.addEventListener("click", function(event) {
+  if (!("geolocation" in navigator) ) {
+    return;
+  }
+  // hide get location button and show spinner.
+  locationButton.style.display = "none";
+  locationLoader.style.display = "block";
+  var currentPositionConfig = {timeout: 7000}; // try and get position for 7 seconds.
+  navigator.geolocation.getCurrentPosition(function(position) {
+      locationButton.style.display = "inline"; // still show button even if we retrievd position.
+      locationLoader.style.display = "none"; // hide the loader.
+      fetchedLocation = {lat: position.coords.latitude, lng: 0}; // only store latitude.
+      /* 
+        Could use google geolocation services to get back an actual address,
+        but this is good for now.
+      */
+      locationInput.value = "New York";
+      locationDiv.classList.add("is-focused"); // required by material design css library.
+    },
+    function(error) {
+      fetchedLocation = {lat: null, lng: null};
+      locationButton.style.display = "inline"; // still show button even if it errors
+      locationLoader.style.display = "none"; // hide the loader.
+      console.error(error);
+      alert("Couldn't retrieve your location. Please try again or manually fill it in.");
+    },
+    currentPositionConfig
+  );
+});
+
+function initializeLocation() {
+  if (!("geolocation" in navigator) ) {
+    locationButton.style.display = "none";
+  }
+}
 
 function initializeMedia() {
   /* Check if mediaDevices is supported in the browser. mediaDevices
@@ -113,6 +153,7 @@ function openCreatePostModal() {
   //createPostArea.style.display = 'block';
   createPostArea.style.transform = 'translateY(0)';
   initializeMedia();
+  initializeLocation();
   showInstallBannerIfPossible();
 }
 
@@ -122,6 +163,8 @@ function closeCreatePostModal() {
   pickImageDiv.style.display = "none"; // hide the file picker div
   videoPlayer.style.display = "none"; // hide the video element
   canvasElement.style.display = "none"; // hide the canvas element.
+  locationButton.style.display = "inline";
+  locationLoader.style.display = "none";
 }
 
 shareImageButton.addEventListener('click', openCreatePostModal);
@@ -217,6 +260,8 @@ function sendDataToBackend() {
   formData.append("id", idOfPost);
   formData.append("title", titleInput.value);
   formData.append("location", locationInput.value);
+  formData.append("rawLocationLat", fetchedLocation.lat);
+  formData.append("rawLocationLng", fetchedLocation.lng);
   var pictureName = idOfPost + ".png";
   formData.append("file", picture, pictureName);
   var config = {
@@ -246,7 +291,8 @@ createPostForm.addEventListener("submit", function(event) {
           id: new Date().toISOString(),
           title: titleInput.value,
           location: locationInput.value,
-          picture: picture
+          picture: picture,
+          rawLocation: fetchedLocation
         };
         // store data to IndexedDB, then register sync task.
         storeDataToObjectStore("syncedPosts", post)

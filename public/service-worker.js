@@ -1,8 +1,8 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-var CACHE_STATIC = "static-v34";
-var CACHE_DYNAMIC = "dynamic-v24";
+var CACHE_STATIC = "static-v38";
+var CACHE_DYNAMIC = "dynamic-v28";
 var STATIC_FILES = [
     "/",
     "/index.html",
@@ -225,6 +225,8 @@ self.addEventListener("sync", function(event) {
                         formData.append("id", eachPost.id);
                         formData.append("title", eachPost.title);
                         formData.append("location", eachPost.location);
+                        formData.append("rawLocationLat", eachPost.rawLocation.lat);
+                        formData.append("rawLocationLng", eachPost.rawLocation.lng);
                         var pictureName = eachPost.id + ".png";
                         formData.append("file", eachPost.picture, pictureName);
                         var config = {
