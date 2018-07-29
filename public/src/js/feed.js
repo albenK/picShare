@@ -55,6 +55,9 @@ function initializeMedia() {
     });
 }
 function stopCamera() {
+  if(!videoPlayer.srcObject){
+    return;
+  }
   var videoTracks = videoPlayer.srcObject.getVideoTracks(); // get all running video tracks. returns an array
   // iterate through each track and stop them.
   videoTracks.forEach(function(videoTrack) {
@@ -81,6 +84,11 @@ captureButton.addEventListener("click", function(event) {
   stopCamera();
   var canvasElementDataURL = canvasElement.toDataURL();
   picture = dataURItoBlob(canvasElementDataURL);
+});
+
+// Listen for change event for the file picker (when user changes the file)
+imagePicker.addEventListener("change", function(event) {
+  picture = event.target.files[0];
 });
 
 // currently not being used. Allows us to cache things on demand.
