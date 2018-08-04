@@ -14,12 +14,13 @@ var picture = null; // assigned a value of Blob type within captureButton click 
 var locationButton = document.querySelector("#location-button");
 var locationLoader = document.querySelector("#location-loader");
 var locationDiv = document.querySelector("#manual-location");
-var fetchedLocation = null;
+var fetchedLocation = {lat:0, lng: 0};
 
 locationButton.addEventListener("click", function(event) {
   if (!("geolocation" in navigator) ) {
     return;
   }
+  var sawAlert = false;
   // hide get location button and show spinner.
   locationButton.style.display = "none";
   locationLoader.style.display = "block";
@@ -36,11 +37,15 @@ locationButton.addEventListener("click", function(event) {
       locationDiv.classList.add("is-focused"); // required by material design css library.
     },
     function(error) {
-      fetchedLocation = {lat: null, lng: null};
+      fetchedLocation = {lat: 0, lng: 0};
       locationButton.style.display = "inline"; // still show button even if it errors
       locationLoader.style.display = "none"; // hide the loader.
       console.error(error);
-      alert("Couldn't retrieve your location. Please try again or manually fill it in.");
+      // only show the alert, if user hasnt seen it yet.
+      if(!sawAlert) {
+        alert("Couldn't retrieve your location. You may be offline, or your network connection may be low.");
+        sawAlert = true;
+      }
     },
     currentPositionConfig
   );
@@ -158,13 +163,16 @@ function openCreatePostModal() {
 }
 
 function closeCreatePostModal() {
-  createPostArea.style.transform = 'translateY(100vh)';
-  stopCamera();
   pickImageDiv.style.display = "none"; // hide the file picker div
   videoPlayer.style.display = "none"; // hide the video element
   canvasElement.style.display = "none"; // hide the canvas element.
   locationButton.style.display = "inline";
   locationLoader.style.display = "none";
+  captureButton.style.display = "inline";
+  stopCamera();
+  setTimeout(function() { // wait 1ms
+    createPostArea.style.transform = 'translateY(100vh)';
+  },100);
 }
 
 shareImageButton.addEventListener('click', openCreatePostModal);
